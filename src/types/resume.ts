@@ -8,6 +8,7 @@ export interface PersonalInfo {
   github?: string;
   linkedin?: string;
   summary?: string;
+  avatar?: string;
 }
 
 export interface Experience {
@@ -56,6 +57,19 @@ export interface ResumeData {
   projects: Project[];
   skills: Skill[];
   languages?: Language[];
+  sectionOrder?: string[];
+  sectionVisibility?: Record<string, boolean>;
 }
 
 export type ThemeType = 'classic' | 'modern' | 'minimal';
+
+export const DEFAULT_SECTION_ORDER = ['personal', 'experience', 'projects', 'education', 'skills', 'languages'];
+
+export const DEFAULT_SECTION_VISIBILITY: Record<string, boolean> = {
+  personal: true,
+  experience: true,
+  projects: true,
+  education: true,
+  skills: true,
+  languages: true,
+};

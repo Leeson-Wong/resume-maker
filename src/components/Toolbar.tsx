@@ -1,4 +1,5 @@
-import type { ThemeType } from '../types/resume';
+import { useRef } from 'react';
+import type { ThemeType, ResumeData } from '../types/resume';
 import { themes } from '../themes';
 
 interface ToolbarProps {
@@ -6,11 +7,35 @@ interface ToolbarProps {
   onThemeChange: (theme: ThemeType) => void;
   mode: 'edit' | 'preview';
   onModeChange: (mode: 'edit' | 'preview') => void;
+  onExport: () => void;
+  onImport: (data: ResumeData) => void;
 }
 
-export function Toolbar({ theme, onThemeChange, mode, onModeChange }: ToolbarProps) {
+export function Toolbar({ theme, onThemeChange, mode, onModeChange, onExport, onImport }: ToolbarProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const printResume = () => {
     window.print();
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const importedData = JSON.parse(event.target?.result as string);
+          onImport(importedData);
+          alert('导入成功！');
+        } catch {
+          alert('导入失败，请确保文件格式正确');
+        }
+      };
+      reader.readAsText(file);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -42,6 +67,37 @@ export function Toolbar({ theme, onThemeChange, mode, onModeChange }: ToolbarPro
               预览
             </button>
           </div>
+
+          {/* 导入/导出按钮 - 仅编辑模式显示 */}
+          {mode === 'edit' && (
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleImport}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-all flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                导入
+              </button>
+              <button
+                onClick={onExport}
+                className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-all flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                导出
+              </button>
+            </div>
+          )}
 
           {/* 主题选择 - 仅预览模式显示 */}
           {mode === 'preview' && (

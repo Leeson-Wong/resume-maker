@@ -11,7 +11,6 @@ function App() {
   const [theme, setTheme] = useState<ThemeType>('modern');
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const [data, setData] = useState<ResumeData>(() => {
-    // 尝试从 localStorage 恢复数据
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
@@ -28,6 +27,25 @@ function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
 
+  // 导出 JSON
+  const handleExport = () => {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `resume-${data.personal.name || 'export'}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 导入 JSON
+  const handleImport = (importedData: ResumeData) => {
+    setData(importedData);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Toolbar
@@ -35,6 +53,8 @@ function App() {
         onThemeChange={setTheme}
         mode={mode}
         onModeChange={setMode}
+        onExport={handleExport}
+        onImport={handleImport}
       />
       <div className="pt-16 pb-8">
         {mode === 'edit' ? (

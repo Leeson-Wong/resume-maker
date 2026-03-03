@@ -87,5 +87,31 @@
   "languages": [
     { "name": "中文", "level": "母语" },
     { "name": "英语", "level": "流利 (CET-6)" }
+  ],
+  "certificates": [
+    {
+      "name": "AWS 认证解决方案架构师",
+      "issuer": "Amazon Web Services",
+      "date": "2023-06",
+      "link": "https://aws.amazon.com/certification/"
+    },
+    {
+      "name": "Google Cloud 专业云架构师",
+      "issuer": "Google Cloud",
+      "date": "2022-11"
+    }
+  ],
+  "interests": [
+    {
+      "name": "技术",
+      "items": ["开源贡献", "技术博客", "参加技术大会"]
+    },
+    {
+      "name": "运动",
+      "items": ["游泳", "跑步", "羽毛球"]
+    },
+    {
+      "name": "其他"
+    }
   ]
 }

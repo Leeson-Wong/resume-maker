@@ -21,7 +21,7 @@ export interface ThemeConfig {
 export const themes: Record<ThemeType, ThemeConfig> = {
   classic: {
     id: 'classic',
-    label: '经典',
+    label: 'themes.classic',
     container: 'bg-white shadow-lg max-w-[800px] mx-auto p-8',
     header: 'border-b-2 border-gray-800 pb-4 mb-6',
     nameText: 'text-3xl font-bold text-gray-900',
@@ -38,7 +38,7 @@ export const themes: Record<ThemeType, ThemeConfig> = {
   },
   modern: {
     id: 'modern',
-    label: '现代',
+    label: 'themes.modern',
     container: 'bg-gradient-to-br from-slate-50 to-blue-50 shadow-xl max-w-[800px] mx-auto p-8 rounded-lg',
     header: 'mb-8',
     nameText: 'text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent',
@@ -55,7 +55,7 @@ export const themes: Record<ThemeType, ThemeConfig> = {
   },
   minimal: {
     id: 'minimal',
-    label: '极简',
+    label: 'themes.minimal',
     container: 'bg-white max-w-[800px] mx-auto p-8',
     header: 'mb-8 text-center',
     nameText: 'text-3xl font-light text-gray-900 tracking-widest',

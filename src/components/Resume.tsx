@@ -1,4 +1,5 @@
-import type { ResumeData, ThemeType } from '../types/resume';
+import { useTranslation } from 'react-i18next';
+import type { ResumeData, ThemeType, CustomSection } from '../types/resume';
 import { DEFAULT_SECTION_ORDER, DEFAULT_SECTION_VISIBILITY } from '../types/resume';
 import { themes } from '../themes';
 
@@ -8,12 +9,18 @@ interface ResumeProps {
 }
 
 export function Resume({ data, theme }: ResumeProps) {
-  const t = themes[theme];
+  const { t } = useTranslation();
+  const themeConfig = themes[theme];
   const sectionOrder = data.sectionOrder || DEFAULT_SECTION_ORDER;
   const sectionVisibility = data.sectionVisibility || DEFAULT_SECTION_VISIBILITY;
 
   const formatDate = (date: string) => {
     const [year, month] = date.split('-');
+    const locale = document.documentElement.lang || 'zh';
+    if (locale.startsWith('en')) {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${monthNames[parseInt(month) - 1]} ${year}`;
+    }
     return `${year}年${month}月`;
   };
 
@@ -31,7 +38,7 @@ export function Resume({ data, theme }: ResumeProps) {
 
   // 渲染头部信息
   const renderHeader = () => (
-    <header className={t.header}>
+    <header className={themeConfig.header}>
       <div className="flex items-center gap-4">
         {data.personal.avatar && (
           <img
@@ -41,11 +48,11 @@ export function Resume({ data, theme }: ResumeProps) {
           />
         )}
         <div className="flex-1">
-          <h1 className={t.nameText}>{data.personal.name}</h1>
-          <p className={t.title}>{data.personal.title}</p>
+          <h1 className={themeConfig.nameText}>{data.personal.name}</h1>
+          <p className={themeConfig.title}>{data.personal.title}</p>
         </div>
       </div>
-      <div className={t.contactInfo}>
+      <div className={themeConfig.contactInfo}>
         {data.personal.email && (
           <span className="flex items-center gap-1">
             {renderIcon('email')} {data.personal.email}
@@ -84,21 +91,21 @@ export function Resume({ data, theme }: ResumeProps) {
   const renderExperience = () => {
     if (data.experience.length === 0) return null;
     return (
-      <section className={t.section}>
-        <h2 className={t.sectionTitle}>工作经历</h2>
-        <div className={t.sectionContent}>
+      <section className={themeConfig.section}>
+        <h2 className={themeConfig.sectionTitle}>{t('sections.experience')}</h2>
+        <div className={themeConfig.sectionContent}>
           {data.experience.map((exp, index) => (
             <div key={index}>
               <div className="flex justify-between items-start flex-wrap">
                 <div>
-                  <h3 className={t.itemTitle}>{exp.company}</h3>
-                  <p className={t.itemSubtitle}>{exp.position}</p>
+                  <h3 className={themeConfig.itemTitle}>{exp.company}</h3>
+                  <p className={themeConfig.itemSubtitle}>{exp.position}</p>
                 </div>
-                <span className={t.dateRange}>
-                  {formatDate(exp.startDate)} - {exp.current ? '至今' : exp.endDate && formatDate(exp.endDate)}
+                <span className={themeConfig.dateRange}>
+                  {formatDate(exp.startDate)} - {exp.current ? t('resume.present') : exp.endDate && formatDate(exp.endDate)}
                 </span>
               </div>
-              <ul className={t.highlightList}>
+              <ul className={themeConfig.highlightList}>
                 {exp.highlights.map((highlight, i) => (
                   <li key={i}>{highlight}</li>
                 ))}
@@ -114,14 +121,14 @@ export function Resume({ data, theme }: ResumeProps) {
   const renderProjects = () => {
     if (data.projects.length === 0) return null;
     return (
-      <section className={t.section}>
-        <h2 className={t.sectionTitle}>项目经历</h2>
-        <div className={t.sectionContent}>
+      <section className={themeConfig.section}>
+        <h2 className={themeConfig.sectionTitle}>{t('sections.projects')}</h2>
+        <div className={themeConfig.sectionContent}>
           {data.projects.map((project, index) => (
             <div key={index}>
               <div className="flex justify-between items-start flex-wrap">
                 <div>
-                  <h3 className={t.itemTitle}>{project.name}</h3>
+                  <h3 className={themeConfig.itemTitle}>{project.name}</h3>
                   <p className="text-gray-600 text-sm">{project.description}</p>
                 </div>
                 {project.link && (
@@ -130,11 +137,11 @@ export function Resume({ data, theme }: ResumeProps) {
               </div>
               <div className="flex flex-wrap mt-2">
                 {project.technologies.map((tech, i) => (
-                  <span key={i} className={t.skillTag}>{tech}</span>
+                  <span key={i} className={themeConfig.skillTag}>{tech}</span>
                 ))}
               </div>
               {project.highlights && project.highlights.length > 0 && (
-                <ul className={t.highlightList}>
+                <ul className={themeConfig.highlightList}>
                   {project.highlights.map((highlight, i) => (
                     <li key={i}>{highlight}</li>
                   ))}
@@ -151,23 +158,23 @@ export function Resume({ data, theme }: ResumeProps) {
   const renderEducation = () => {
     if (data.education.length === 0) return null;
     return (
-      <section className={t.section}>
-        <h2 className={t.sectionTitle}>教育背景</h2>
-        <div className={t.sectionContent}>
+      <section className={themeConfig.section}>
+        <h2 className={themeConfig.sectionTitle}>{t('sections.education')}</h2>
+        <div className={themeConfig.sectionContent}>
           {data.education.map((edu, index) => (
             <div key={index}>
               <div className="flex justify-between items-start flex-wrap">
                 <div>
-                  <h3 className={t.itemTitle}>{edu.school}</h3>
-                  <p className={t.itemSubtitle}>{edu.degree} - {edu.field}</p>
+                  <h3 className={themeConfig.itemTitle}>{edu.school}</h3>
+                  <p className={themeConfig.itemSubtitle}>{edu.degree} - {edu.field}</p>
                 </div>
-                <span className={t.dateRange}>
+                <span className={themeConfig.dateRange}>
                   {formatDate(edu.startDate)} - {edu.endDate && formatDate(edu.endDate)}
                 </span>
               </div>
               {edu.gpa && <p className="text-sm text-gray-500">GPA: {edu.gpa}</p>}
               {edu.honors && edu.honors.length > 0 && (
-                <p className="text-sm text-gray-500">荣誉: {edu.honors.join('、')}</p>
+                <p className="text-sm text-gray-500">{t('resume.honors')}: {edu.honors.join('、')}</p>
               )}
             </div>
           ))}
@@ -180,8 +187,8 @@ export function Resume({ data, theme }: ResumeProps) {
   const renderSkills = () => {
     if (data.skills.length === 0) return null;
     return (
-      <section className={t.section}>
-        <h2 className={t.sectionTitle}>专业技能</h2>
+      <section className={themeConfig.section}>
+        <h2 className={themeConfig.sectionTitle}>{t('sections.skills')}</h2>
         <div className="space-y-2">
           {data.skills.map((skill, index) => (
             <div key={index}>
@@ -198,13 +205,96 @@ export function Resume({ data, theme }: ResumeProps) {
   const renderLanguages = () => {
     if (!data.languages || data.languages.length === 0) return null;
     return (
-      <section className={t.section}>
-        <h2 className={t.sectionTitle}>语言能力</h2>
+      <section className={themeConfig.section}>
+        <h2 className={themeConfig.sectionTitle}>{t('sections.languages')}</h2>
         <div className="flex flex-wrap gap-4">
           {data.languages.map((lang, index) => (
             <span key={index} className="text-sm text-gray-600">
               {lang.name}: {lang.level}
             </span>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // 渲染证书/荣誉
+  const renderCertificates = () => {
+    if (!data.certificates || data.certificates.length === 0) return null;
+    return (
+      <section className={themeConfig.section}>
+        <h2 className={themeConfig.sectionTitle}>{t('sections.certificates')}</h2>
+        <div className={themeConfig.sectionContent}>
+          {data.certificates.map((cert, index) => (
+            <div key={index} className="mb-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className={themeConfig.itemTitle}>{cert.name}</h3>
+                  {cert.issuer && <p className="text-sm text-gray-600">{cert.issuer}</p>}
+                </div>
+                {cert.date && <span className={themeConfig.dateRange}>{cert.date}</span>}
+              </div>
+              {cert.link && (
+                <a href={cert.link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline mt-1 inline-block">
+                  {t('editor.certificateViewLink')}
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // 渲染兴趣爱好
+  const renderInterests = () => {
+    if (!data.interests || data.interests.length === 0) return null;
+    return (
+      <section className={themeConfig.section}>
+        <h2 className={themeConfig.sectionTitle}>{t('sections.interests')}</h2>
+        <div className="flex flex-wrap gap-4">
+          {data.interests.map((interest, index) => (
+            <div key={index}>
+              <span className="text-sm font-medium text-gray-700">{interest.name}</span>
+              {interest.items && interest.items.length > 0 && (
+                <span className="text-sm text-gray-600">: {interest.items.join(', ')}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  // 渲染自定义模块
+  const renderCustomSection = (section: CustomSection) => {
+    if (!section.entries || section.entries.length === 0) return null;
+    return (
+      <section className={themeConfig.section}>
+        <h2 className={themeConfig.sectionTitle}>{section.title}</h2>
+        <div className={themeConfig.sectionContent}>
+          {section.entries.map((entry, index) => (
+            <div key={index} className="mb-3">
+              <div className="flex justify-between items-start flex-wrap">
+                <div>
+                  <h3 className={themeConfig.itemTitle}>{entry.title}</h3>
+                  {entry.subtitle && <p className={themeConfig.itemSubtitle}>{entry.subtitle}</p>}
+                </div>
+                {(entry.startDate || entry.endDate) && (
+                  <span className={themeConfig.dateRange}>
+                    {entry.startDate && formatDate(entry.startDate)} - {entry.endDate && formatDate(entry.endDate)}
+                  </span>
+                )}
+              </div>
+              {entry.description && <p className="text-sm text-gray-600 mt-1">{entry.description}</p>}
+              {entry.highlights && entry.highlights.length > 0 && (
+                <ul className={themeConfig.highlightList}>
+                  {entry.highlights.map((highlight, i) => (
+                    <li key={i}>{highlight}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
           ))}
         </div>
       </section>
@@ -219,15 +309,26 @@ export function Resume({ data, theme }: ResumeProps) {
     education: renderEducation,
     skills: renderSkills,
     languages: renderLanguages,
+    certificates: renderCertificates,
+    interests: renderInterests,
   };
 
   return (
-    <div id="resume-content" className={t.container}>
+    <div id="resume-content" className={themeConfig.container}>
       {sectionOrder.map((sectionId) => {
         // 检查模块是否可见
         if (!sectionVisibility[sectionId]) return null;
+        // 先检查是否是预定义模块
         const renderer = sectionRenderers[sectionId];
-        return renderer ? renderer() : null;
+        if (renderer) {
+          return <div key={sectionId}>{renderer()}</div>;
+        }
+        // 检查是否是自定义模块
+        const customSection = (data.customSections || []).find(s => s.id === sectionId);
+        if (customSection) {
+          return <div key={sectionId}>{renderCustomSection(customSection)}</div>;
+        }
+        return null;
       })}
     </div>
   );

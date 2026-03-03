@@ -11,6 +11,46 @@ body {
   background-color: #f5f5f5;
 }
 
+/* 移动端优化 */
+@media (max-width: 640px) {
+  /* 移动端隐藏实时预览面板 */
+  .live-preview-panel {
+    display: none !important;
+  }
+
+  /* 移动端工具栏优化 */
+  .toolbar-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* 移动端底部按钮优化 */
+  .mobile-fab {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+
+  /* 移动端卡片间距 */
+  .mobile-card {
+    padding: 0.75rem;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  /* 增大点击区域 */
+  button, input, textarea, select {
+    min-height: 44px;
+  }
+
+  /* 表单输入框优化 */
+  input, textarea, select {
+    font-size: 16px; /* 防止 iOS 缩放 */
+  }
+}
+
 /* 打印样式 */
 @media print {
   body {

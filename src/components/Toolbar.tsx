@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ThemeType, ResumeData } from '../types/resume';
 import { themes } from '../themes';
 
@@ -9,9 +10,21 @@ interface ToolbarProps {
   onModeChange: (mode: 'edit' | 'preview') => void;
   onExport: () => void;
   onImport: (data: ResumeData) => void;
+  livePreview: boolean;
+  onLivePreviewChange: (enabled: boolean) => void;
 }
 
-export function Toolbar({ theme, onThemeChange, mode, onModeChange, onExport, onImport }: ToolbarProps) {
+export function Toolbar({
+  theme,
+  onThemeChange,
+  mode,
+  onModeChange,
+  onExport,
+  onImport,
+  livePreview,
+  onLivePreviewChange
+}: ToolbarProps) {
+  const { t, i18n } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const printResume = () => {
@@ -26,9 +39,9 @@ export function Toolbar({ theme, onThemeChange, mode, onModeChange, onExport, on
         try {
           const importedData = JSON.parse(event.target?.result as string);
           onImport(importedData);
-          alert('导入成功！');
+          alert(t('messages.importSuccess'));
         } catch {
-          alert('导入失败，请确保文件格式正确');
+          alert(t('messages.importError'));
         }
       };
       reader.readAsText(file);
@@ -38,39 +51,72 @@ export function Toolbar({ theme, onThemeChange, mode, onModeChange, onExport, on
     }
   };
 
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'zh' ? 'en' : 'zh';
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('i18n-language', newLang);
+  };
+
   return (
     <div className="no-print fixed top-0 left-0 right-0 bg-white shadow-md z-50">
-      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-xl font-bold text-gray-800">简历生成器</h1>
+      <div className="toolbar-container max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between flex-wrap gap-2 sm:gap-4">
+        <h1 className="text-lg sm:text-xl font-bold text-gray-800">{t('app.title')}</h1>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {/* 模式切换 */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-gray-100 rounded-lg p-0.5 sm:p-1">
             <button
               onClick={() => onModeChange('edit')}
-              className={`px-3 py-1.5 rounded text-sm transition-all ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-sm transition-all ${
                 mode === 'edit'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              编辑
+              {t('toolbar.edit')}
             </button>
             <button
               onClick={() => onModeChange('preview')}
-              className={`px-3 py-1.5 rounded text-sm transition-all ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-sm transition-all ${
                 mode === 'preview'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              预览
+              {t('toolbar.preview')}
             </button>
           </div>
 
+          {/* 语言切换 */}
+          <button
+            onClick={toggleLanguage}
+            className="px-2 py-1 sm:py-1.5 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-all"
+          >
+            {i18n.language === 'zh' ? 'EN' : '中文'}
+          </button>
+
+          {/* 实时预览开关 - 仅编辑模式且大屏幕显示 */}
+          {mode === 'edit' && (
+            <label className="hidden sm:flex items-center gap-2 cursor-pointer">
+              <span className="text-sm text-gray-600">{t('toolbar.livePreview')}</span>
+              <button
+                onClick={() => onLivePreviewChange(!livePreview)}
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  livePreview ? 'bg-blue-500' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
+                    livePreview ? 'translate-x-5' : ''
+                  }`}
+                />
+              </button>
+            </label>
+          )}
+
           {/* 导入/导出按钮 - 仅编辑模式显示 */}
           {mode === 'edit' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -80,41 +126,43 @@ export function Toolbar({ theme, onThemeChange, mode, onModeChange, onExport, on
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-all flex items-center gap-1"
+                className="p-2 sm:px-3 sm:py-1.5 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-all flex items-center gap-1"
+                title={t('toolbar.import')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
-                导入
+                <span className="hidden sm:inline">{t('toolbar.import')}</span>
               </button>
               <button
                 onClick={onExport}
-                className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-all flex items-center gap-1"
+                className="p-2 sm:px-3 sm:py-1.5 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200 transition-all flex items-center gap-1"
+                title={t('toolbar.export')}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                导出
+                <span className="hidden sm:inline">{t('toolbar.export')}</span>
               </button>
             </div>
           )}
 
           {/* 主题选择 - 仅预览模式显示 */}
           {mode === 'preview' && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">主题:</span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="text-sm text-gray-600 hidden sm:inline">{t('toolbar.theme')}:</span>
               <div className="flex gap-1">
-                {Object.values(themes).map((t) => (
+                {Object.values(themes).map((themeConfig) => (
                   <button
-                    key={t.id}
-                    onClick={() => onThemeChange(t.id)}
-                    className={`px-3 py-1.5 rounded text-sm transition-all ${
-                      theme === t.id
+                    key={themeConfig.id}
+                    onClick={() => onThemeChange(themeConfig.id)}
+                    className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded text-sm transition-all ${
+                      theme === themeConfig.id
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
-                    {t.label}
+                    {t(themeConfig.label)}
                   </button>
                 ))}
               </div>
@@ -125,12 +173,12 @@ export function Toolbar({ theme, onThemeChange, mode, onModeChange, onExport, on
           {mode === 'preview' && (
             <button
               onClick={printResume}
-              className="px-4 py-1.5 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-all flex items-center gap-2"
+              className="p-2 sm:px-4 sm:py-1.5 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-all flex items-center gap-1 sm:gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              打印 / 导出 PDF
+              <span className="hidden sm:inline">{t('toolbar.printPdf')}</span>
             </button>
           )}
         </div>

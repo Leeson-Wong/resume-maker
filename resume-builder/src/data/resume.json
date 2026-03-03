@@ -1,0 +1,91 @@
+{
+  "personal": {
+    "name": "张三",
+    "title": "全栈开发工程师",
+    "email": "zhangsan@example.com",
+    "phone": "138-0000-0000",
+    "location": "北京，中国",
+    "github": "github.com/zhangsan",
+    "linkedin": "linkedin.com/in/zhangsan",
+    "summary": "5年全栈开发经验，专注于React生态和Node.js后端开发。擅长构建高性能、可扩展的Web应用，对前端工程化和用户体验有深入理解。"
+  },
+  "experience": [
+    {
+      "company": "某科技有限公司",
+      "position": "高级全栈工程师",
+      "location": "北京",
+      "startDate": "2021-03",
+      "current": true,
+      "highlights": [
+        "主导开发公司核心SaaS产品，服务10万+用户，日均PV达100万",
+        "设计并实现微服务架构，将系统响应时间降低60%",
+        "搭建CI/CD流水线，部署效率提升80%",
+        "带领5人前端团队，制定代码规范和最佳实践"
+      ]
+    },
+    {
+      "company": "某互联网公司",
+      "position": "前端开发工程师",
+      "location": "北京",
+      "startDate": "2019-07",
+      "endDate": "2021-02",
+      "highlights": [
+        "负责电商平台前端开发，使用React+TypeScript技术栈",
+        "优化首屏加载速度，将FCP从3s优化至1.2s",
+        "开发可复用组件库，被公司多个项目采用"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "北京理工大学",
+      "degree": "本科",
+      "field": "计算机科学与技术",
+      "location": "北京",
+      "startDate": "2015-09",
+      "endDate": "2019-06",
+      "gpa": "3.8/4.0",
+      "honors": ["校级优秀毕业生", "国家奖学金"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "开源简历生成器",
+      "description": "一个基于React的简历生成工具，支持多种主题和PDF导出",
+      "technologies": ["React", "TypeScript", "Tailwind CSS", "Vite"],
+      "link": "github.com/zhangsan/resume-builder",
+      "highlights": [
+        "支持JSON配置简历内容",
+        "3种精美主题可选",
+        "一键导出PDF"
+      ]
+    },
+    {
+      "name": "实时协作白板",
+      "description": "支持多人实时协作的在线白板应用",
+      "technologies": ["React", "Socket.io", "Node.js", "Canvas API"],
+      "highlights": [
+        "实现实时同步，延迟低于100ms",
+        "支持无限画布和多种绘图工具"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "category": "前端技术",
+      "items": ["React", "Vue", "TypeScript", "Next.js", "Tailwind CSS", "Webpack", "Vite"]
+    },
+    {
+      "category": "后端技术",
+      "items": ["Node.js", "Express", "NestJS", "Python", "PostgreSQL", "MongoDB", "Redis"]
+    },
+    {
+      "category": "工具与运维",
+      "items": ["Git", "Docker", "CI/CD", "Linux", "Nginx", "AWS"]
+    }
+  ],
+  "languages": [
+    { "name": "中文", "level": "母语" },
+    { "name": "英语", "level": "流利 (CET-6)" }
+  ]
+}

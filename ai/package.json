@@ -1,6 +1,6 @@
 {
   "name": "resume-mcp-server",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "MCP Server that exposes resume data as queryable AI tool endpoints",
   "type": "module",
   "scripts": {
@@ -8,7 +8,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

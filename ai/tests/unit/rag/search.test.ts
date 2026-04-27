@@ -243,7 +243,7 @@ describe('evaluateFit', () => {
     const jd = 'Looking for React and Kubernetes and Terraform experts.';
     const result = evaluateFit(sampleResume, jd);
     // The resume doesn't have Kubernetes or Terraform
-    expect(result.missing).toContain('kubernetes');
-    expect(result.missing).toContain('terraform');
+    expect(result.missing).toContain('Kubernetes');
+    expect(result.missing).toContain('Terraform');
   });
 });

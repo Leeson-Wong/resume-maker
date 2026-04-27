@@ -6,7 +6,7 @@ import type { ResumeData } from '../../src/types.js';
 
 /**
  * Comprehensive MCP protocol validation test.
- * Verifies all 7 tools + 2 resources are properly registered and functional.
+ * Verifies all 8 tools + 2 resources are properly registered and functional.
  */
 describe('MCP Protocol Validation', () => {
   let client: Client;
@@ -25,7 +25,7 @@ describe('MCP Protocol Validation', () => {
   });
 
   describe('Tool Registration', () => {
-    it('should list all 7 registered tools', async () => {
+    it('should list all 8 registered tools', async () => {
       const result = await client.listTools();
       const toolNames = result.tools.map((t) => t.name);
       expect(toolNames).toContain('get_profile');
@@ -35,7 +35,8 @@ describe('MCP Protocol Validation', () => {
       expect(toolNames).toContain('get_education');
       expect(toolNames).toContain('search_resume');
       expect(toolNames).toContain('evaluate_fit');
-      expect(result.tools).toHaveLength(7);
+      expect(toolNames).toContain('get_career_summary');
+      expect(result.tools).toHaveLength(8);
     });
 
     it('each tool should have a description', async () => {

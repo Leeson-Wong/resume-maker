@@ -1,4 +1,10 @@
-import type { ResumeData, SearchResult } from '../types.js';
+import type { ResumeData, SearchResult, FitResult } from '../types.js';
+import { getSkillName } from '../types.js';
+import {
+  normalizeSkillName,
+  extractTechTermsFromResume,
+} from './skills.js';
+import { buildAliasMap } from './skill-aliases.js';
 
 /**
  * Lightweight keyword search with TF-based relevance scoring.
@@ -8,6 +14,9 @@ import type { ResumeData, SearchResult } from '../types.js';
 function tokenize(text: string): string[] {
   return text
     .toLowerCase()
+    // Separate Chinese/Latin and Chinese/digit boundaries
+    .replace(/([\u4e00-\u9fff])([a-z0-9])/g, '$1 $2')
+    .replace(/([a-z0-9])([\u4e00-\u9fff])/g, '$1 $2')
     .replace(/[^\w\u4e00-\u9fff]/g, ' ')
     .split(/\s+/)
     .filter((t) => t.length > 0);
@@ -24,7 +33,6 @@ function scoreText(text: string, queryTerms: string[]): number {
   let score = 0;
   for (const term of queryTerms) {
     if (containsTerm(lower, term)) {
-      // Count occurrences for TF scoring
       let count = 0;
       let idx = 0;
       const termLower = term.toLowerCase();
@@ -47,10 +55,10 @@ export function searchResume(resume: ResumeData, query: string): SearchResult[] 
   // Search personal info
   const personal = resume.personal;
   const personalText = [
-    personal.name,
-    personal.title,
-    personal.summary,
-    personal.location,
+    personal?.name,
+    personal?.title,
+    personal?.summary,
+    personal?.location,
   ]
     .filter(Boolean)
     .join(' ');
@@ -58,26 +66,26 @@ export function searchResume(resume: ResumeData, query: string): SearchResult[] 
   const personalScore = scoreText(personalText, queryTerms);
   if (personalScore > 0) {
     results.push({
-      content: `**${personal.name}** | ${personal.title}\n${personal.summary || ''}\n📍 ${personal.location || ''}`,
+      content: `**${personal?.name ?? ''}** | ${personal?.title ?? ''}\n${personal?.summary || ''}\n📍 ${personal?.location || ''}`,
       source: 'personal',
       relevance: personalScore,
     });
   }
 
   // Search experience
-  for (const exp of resume.experience) {
+  for (const exp of resume?.experience ?? []) {
     const expText = [
       exp.company,
       exp.position,
       exp.location,
-      ...exp.highlights,
+      ...(exp.highlights ?? []),
     ].join(' ');
 
     const expScore = scoreText(expText, queryTerms);
     if (expScore > 0) {
-      const highlights = exp.highlights.map((h) => `  - ${h}`).join('\n');
+      const highlights = (exp.highlights ?? []).map((h) => `  - ${h}`).join('\n');
       results.push({
-        content: `**${exp.position}** @ ${exp.company} (${exp.startDate} - ${exp.current ? '至今' : exp.endDate})\n${highlights}`,
+        content: `**${exp.position}** @ ${exp.company} (${exp.startDate} - ${exp.current ? '至今' : exp.endDate ?? ''})\n${highlights}`,
         source: 'experience',
         relevance: expScore,
       });
@@ -85,18 +93,18 @@ export function searchResume(resume: ResumeData, query: string): SearchResult[] 
   }
 
   // Search projects
-  for (const proj of resume.projects) {
+  for (const proj of resume?.projects ?? []) {
     const projText = [
       proj.name,
       proj.description,
-      ...proj.technologies,
-      ...(proj.highlights || []),
+      ...(proj.technologies ?? []),
+      ...(proj.highlights ?? []),
     ].join(' ');
 
     const projScore = scoreText(projText, queryTerms);
     if (projScore > 0) {
-      const techs = proj.technologies.join(', ');
-      const highlights = (proj.highlights || []).map((h) => `  - ${h}`).join('\n');
+      const techs = (proj.technologies ?? []).join(', ');
+      const highlights = (proj.highlights ?? []).map((h) => `  - ${h}`).join('\n');
       results.push({
         content: `**${proj.name}**\n${proj.description}\nTech: ${techs}\n${highlights}`,
         source: 'projects',
@@ -106,12 +114,15 @@ export function searchResume(resume: ResumeData, query: string): SearchResult[] 
   }
 
   // Search skills
-  for (const skillGroup of resume.skills) {
-    const skillText = [skillGroup.category, ...skillGroup.items].join(' ');
+  for (const skillGroup of resume?.skills ?? []) {
+    const itemNames = (skillGroup.items ?? []).map((item) =>
+      typeof item === 'string' ? item : item.name
+    );
+    const skillText = [skillGroup.category, ...itemNames].join(' ');
     const skillScore = scoreText(skillText, queryTerms);
     if (skillScore > 0) {
       results.push({
-        content: `**${skillGroup.category}**: ${skillGroup.items.join(', ')}`,
+        content: `**${skillGroup.category}**: ${itemNames.join(', ')}`,
         source: 'skills',
         relevance: skillScore,
       });
@@ -119,20 +130,20 @@ export function searchResume(resume: ResumeData, query: string): SearchResult[] 
   }
 
   // Search education
-  for (const edu of resume.education) {
+  for (const edu of resume?.education ?? []) {
     const eduText = [
       edu.school,
       edu.degree,
       edu.field,
       edu.gpa,
-      ...(edu.honors || []),
+      ...(edu.honors ?? []),
     ].join(' ');
 
     const eduScore = scoreText(eduText, queryTerms);
     if (eduScore > 0) {
-      const honors = edu.honors ? `\n  Honors: ${edu.honors.join(', ')}` : '';
+      const honors = edu.honors?.length ? `\n  Honors: ${edu.honors.join(', ')}` : '';
       results.push({
-        content: `**${edu.school}** - ${edu.degree} in ${edu.field} (${edu.startDate} - ${edu.endDate})${honors}\n  GPA: ${edu.gpa || 'N/A'}`,
+        content: `**${edu.school}** - ${edu.degree} in ${edu.field} (${edu.startDate} - ${edu.endDate ?? ''})${honors}\n  GPA: ${edu.gpa || 'N/A'}`,
         source: 'education',
         relevance: eduScore,
       });
@@ -140,38 +151,34 @@ export function searchResume(resume: ResumeData, query: string): SearchResult[] 
   }
 
   // Search certificates
-  if (resume.certificates) {
-    for (const cert of resume.certificates) {
-      const certText = [cert.name, cert.issuer].join(' ');
-      const certScore = scoreText(certText, queryTerms);
-      if (certScore > 0) {
-        results.push({
-          content: `**${cert.name}** - ${cert.issuer} (${cert.date})`,
-          source: 'certificates',
-          relevance: certScore,
-        });
-      }
+  for (const cert of resume?.certificates ?? []) {
+    const certText = [cert.name, cert.issuer].join(' ');
+    const certScore = scoreText(certText, queryTerms);
+    if (certScore > 0) {
+      results.push({
+        content: `**${cert.name}** - ${cert.issuer} (${cert.date})`,
+        source: 'certificates',
+        relevance: certScore,
+      });
     }
   }
 
   // Search custom sections
-  if (resume.customSections) {
-    for (const section of resume.customSections) {
-      for (const entry of section.entries) {
-        const entryText = [
-          entry.title,
-          entry.subtitle,
-          entry.description,
-          ...(entry.highlights || []),
-        ].join(' ');
-        const entryScore = scoreText(entryText, queryTerms);
-        if (entryScore > 0) {
-          results.push({
-            content: `**${entry.title}**${entry.subtitle ? ` - ${entry.subtitle}` : ''}\n${entry.description || ''}`,
-            source: `custom:${section.title}`,
-            relevance: entryScore,
-          });
-        }
+  for (const section of resume?.customSections ?? []) {
+    for (const entry of section.entries ?? []) {
+      const entryText = [
+        entry.title,
+        entry.subtitle,
+        entry.description,
+        ...(entry.highlights ?? []),
+      ].join(' ');
+      const entryScore = scoreText(entryText, queryTerms);
+      if (entryScore > 0) {
+        results.push({
+          content: `**${entry.title}**${entry.subtitle ? ` - ${entry.subtitle}` : ''}\n${entry.description || ''}`,
+          source: `custom:${section.title}`,
+          relevance: entryScore,
+        });
       }
     }
   }
@@ -185,29 +192,42 @@ export function searchResume(resume: ResumeData, query: string): SearchResult[] 
 /**
  * Analyze candidate fit against a job description.
  * Extracts keywords from the JD and matches against resume data.
+ * Uses dynamic tech term extraction instead of hardcoded lists.
  */
 export function evaluateFit(
   resume: ResumeData,
   jobDescription: string
-): {
-  matched: string[];
-  missing: string[];
-  score: number;
-  analysis: string;
-} {
-  // Extract skill-like keywords from the JD
-  const jdTerms = tokenize(jobDescription);
-  const allSkills = resume.skills.flatMap((s) => s.items);
-  const allTechs = resume.projects.flatMap((p) => p.technologies);
+): FitResult {
+  const jd = jobDescription ?? '';
 
-  // Known common tech terms for matching
-  const candidateTerms = new Set(
-    [...allSkills, ...allTechs].map((t) => t.toLowerCase())
+  // Extract skill-like keywords from the JD
+  const jdTerms = tokenize(jd);
+  const allSkillNames = (resume?.skills ?? []).flatMap((s) =>
+    (s.items ?? []).map((item) => getSkillName(item))
   );
+  const allTechs = (resume?.projects ?? []).flatMap((p) => p.technologies ?? []);
+
+  // Build candidate terms from resume data + normalized forms
+  const candidateTerms = new Set<string>();
+  for (const t of [...allSkillNames, ...allTechs]) {
+    const lower = t.toLowerCase();
+    candidateTerms.add(lower);
+    const canonical = normalizeSkillName(t).toLowerCase();
+    candidateTerms.add(canonical);
+    for (const part of lower.split(/[.\s/]+/)) {
+      if (part.length >= 2) candidateTerms.add(part);
+    }
+  }
+
+  // Also add all known aliases from resume tech terms
+  const resumeTechTerms = extractTechTermsFromResume(resume);
+  for (const term of resumeTechTerms) {
+    candidateTerms.add(term.toLowerCase());
+  }
 
   // Also extract from experience highlights for soft skills
-  const expTexts = resume.experience
-    .flatMap((e) => e.highlights)
+  const expTexts = (resume?.experience ?? [])
+    .flatMap((e) => e.highlights ?? [])
     .join(' ')
     .toLowerCase();
 
@@ -220,7 +240,7 @@ export function evaluateFit(
     const isMatch =
       candidateTerms.has(term) ||
       containsTerm(expTexts, term) ||
-      containsTerm(resume.personal.summary?.toLowerCase() || '', term);
+      containsTerm(resume?.personal?.summary?.toLowerCase() ?? '', term);
 
     if (isMatch) {
       if (!matched.includes(term)) {
@@ -229,68 +249,21 @@ export function evaluateFit(
     }
   }
 
-  // For missing, check if JD terms that look like skills/technologies are absent
-  const commonTechTerms = [
-    'react',
-    'vue',
-    'angular',
-    'typescript',
-    'javascript',
-    'python',
-    'java',
-    'go',
-    'rust',
-    'node',
-    'node.js',
-    'docker',
-    'kubernetes',
-    'k8s',
-    'aws',
-    'gcp',
-    'azure',
-    'sql',
-    'mongodb',
-    'redis',
-    'graphql',
-    'rest',
-    'microservice',
-    'ci/cd',
-    'devops',
-    'agile',
-    'next.js',
-    'tailwind',
-    'webpack',
-    'vite',
-    'express',
-    'nestjs',
-    'django',
-    'flask',
-    'spring',
-    'kafka',
-    'rabbitmq',
-    'elasticsearch',
-    'jenkins',
-    'git',
-    'linux',
-    'nginx',
-    'postgres',
-    'mysql',
-    'swift',
-    'kotlin',
-    'flutter',
-    'react native',
-    'terraform',
-    'ansible',
-  ];
+  // For missing: check JD against ALL known tech terms (from global alias database)
+  // This replaces the hardcoded commonTechTerms list
+  const aliasMap = buildAliasMap();
+  const checkedMissing = new Set<string>();
 
-  for (const tech of commonTechTerms) {
-    if (containsTerm(jobDescription.toLowerCase(), tech)) {
+  for (const [aliasLower, canonical] of aliasMap) {
+    if (containsTerm(jd.toLowerCase(), aliasLower)) {
       const hasSkill =
-        candidateTerms.has(tech) ||
-        containsTerm(expTexts, tech) ||
-        containsTerm(resume.personal.summary?.toLowerCase() || '', tech);
-      if (!hasSkill && !missing.includes(tech)) {
-        missing.push(tech);
+        candidateTerms.has(canonical.toLowerCase()) ||
+        candidateTerms.has(aliasLower) ||
+        containsTerm(expTexts, aliasLower) ||
+        containsTerm(resume?.personal?.summary?.toLowerCase() ?? '', aliasLower);
+      if (!hasSkill && !checkedMissing.has(canonical.toLowerCase())) {
+        missing.push(canonical);
+        checkedMissing.add(canonical.toLowerCase());
       }
     }
   }
@@ -303,9 +276,9 @@ export function evaluateFit(
       : 50;
 
   // Build analysis text
-  const p = resume.personal;
+  const p = resume?.personal;
   let analysis = `## Candidate Fit Analysis\n\n`;
-  analysis += `**Candidate**: ${p.name} - ${p.title}\n\n`;
+  analysis += `**Candidate**: ${p?.name ?? 'Unknown'} - ${p?.title ?? 'Unknown'}\n\n`;
   analysis += `### Matched Skills/Experience (${matched.length})\n`;
   if (matched.length > 0) {
     analysis += matched.map((m) => `- ✅ ${m}`).join('\n') + '\n';

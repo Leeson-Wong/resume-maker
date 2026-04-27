@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { ResumeData } from './types.js';
+import type { ResumeData, SkillItem } from './types.js';
+import { getSkillName, isSkillItem } from './types.js';
 
 export function registerResources(server: McpServer, resume: ResumeData): void {
   const p = resume.personal;
@@ -23,29 +24,49 @@ export function registerResources(server: McpServer, resume: ResumeData): void {
     })
   );
 
-  // resume://summary — one-line summary
+  // resume://summary — enriched candidate summary
   server.registerResource(
     'resume-summary',
     'resume://summary',
     {
       title: 'Resume Summary',
-      description: 'One-line candidate summary: name, title, experience years, core skills',
+      description: 'Candidate summary: name, title, experience, seniority, core skills, domains',
       mimeType: 'text/plain',
     },
     async (uri) => {
-      // Calculate years of experience from earliest start date
-      const startDates = resume.experience.map((e) => new Date(e.startDate));
+      // Calculate years of experience
+      const startDates = (resume.experience ?? []).map((e) => new Date(e.startDate));
       const earliest = startDates.length > 0
         ? startDates.reduce((a, b) => (a < b ? a : b))
         : new Date();
       const yearsExp = new Date().getFullYear() - earliest.getFullYear();
 
-      const coreSkills = resume.skills
-        .flatMap((s) => s.items)
-        .slice(0, 6)
+      // Extract core skills with levels
+      const allItems: (string | SkillItem)[] = (resume.skills ?? [])
+        .flatMap((s) => [...(s.items ?? [])]);
+      const coreSkills = allItems
+        .slice(0, 8)
+        .map((item) => {
+          const name = getSkillName(item);
+          if (isSkillItem(item) && item.level) {
+            const labels: Record<number, string> = { 1: '了解', 2: '熟悉', 3: '熟练', 4: '精通', 5: '权威' };
+            return `${name}(${labels[item.level] ?? ''})`;
+          }
+          return name;
+        })
         .join(', ');
 
-      const summary = `${p.name} | ${p.title} | ${yearsExp}+ years experience | Core skills: ${coreSkills}`;
+      // Career metadata
+      const meta = resume.careerMeta;
+      const seniority = meta?.seniority ?? (yearsExp >= 6 ? 'senior' : yearsExp >= 3 ? 'mid' : 'junior');
+      const domains = meta?.domains?.join(', ') ?? '软件开发';
+
+      const summary = [
+        `${p?.name ?? 'Unknown'} | ${p?.title ?? 'Unknown'}`,
+        `${yearsExp}+ years experience | Seniority: ${seniority}`,
+        `Domains: ${domains}`,
+        `Core skills: ${coreSkills}`,
+      ].join('\n');
 
       return {
         contents: [

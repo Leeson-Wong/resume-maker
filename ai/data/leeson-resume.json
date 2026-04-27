@@ -1,0 +1,140 @@
+{
+  "personal": {
+    "name": "王乐生",
+    "title": "全栈开发工程师",
+    "email": "example@email.com",
+    "location": "中国",
+    "github": "github.com/Leeson-Wong",
+    "summary": "6 年软件开发经验，四川大学软件工程本科。横跨大数据云服务、Qt 桌面客户端、小程序、鸿蒙应用等多技术栈。前端深度用户，React/Vue/TypeScript 是日常武器；同时涉猎游戏开发、AI 协议设计和产品架构。独立完成从 0 到 1 的产品交付，追求用最简洁的技术方案解决真实问题。"
+  },
+  "careerMeta": {
+    "totalYears": 6,
+    "seniority": "senior",
+    "domains": ["大数据云服务", "跨端应用开发", "独立产品开发"],
+    "trajectory": ["大数据云平台开发", "独立产品全栈开发"]
+  },
+  "experience": [
+    {
+      "company": "某大数据云服务公司",
+      "position": "高级开发工程师",
+      "startDate": "2020-07",
+      "current": true,
+      "highlights": [
+        "参与大数据云平台核心服务开发，处理海量数据的存储、计算和可视化",
+        "开发 Qt 跨平台客户端，实现数据管理工具的桌面端封装",
+        "负责微信小程序和鸿蒙应用开发，覆盖多端用户场景",
+        "设计并实现 MCP 协议接入层，让 AI Agent 能通过标准协议查询结构化数据"
+      ]
+    },
+    {
+      "company": "独立开发",
+      "position": "全栈开发工程师",
+      "startDate": "2024-01",
+      "current": true,
+      "highlights": [
+        "独立设计并开发 BrickLife（搬砖生存指南）模拟经营小游戏，已上线微信和抖音小游戏平台",
+        "开源 Resume Maker 在线简历生成器，集成 AI MCP Server，实现简历数据的 AI 可查询化",
+        "设计跨平台适配架构（微信/抖音/H5），业务代码零修改跨端运行"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "四川大学",
+      "degree": "本科",
+      "field": "软件工程",
+      "startDate": "2016-09",
+      "endDate": "2020-06"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Resume Maker + AI MCP Server",
+      "description": "在线简历生成器 + 基于 MCP 协议的 AI 可查询简历服务。前端编辑器支持实时预览、多主题切换、拖拽排序、PDF 导出；后端 MCP Server 提供 8 个 AI 工具（个人资料查询、经历搜索、岗位匹配分析、职业概览等），让 AI Agent 能通过标准协议读取简历数据。",
+      "technologies": ["React 19", "TypeScript", "Vite 7", "Tailwind CSS 4", "MCP Protocol", "Node.js", "Zod", "Vitest"],
+      "link": "github.com/Leeson-Wong/resume-maker",
+      "highlights": [
+        "前端：React 19 + Vite 7 + Tailwind CSS 4，技术栈选型紧跟最新生态",
+        "AI 层：基于 MCP 协议设计 8 个查询工具 + 2 个资源端点，支持 TF 评分全文搜索和 JD 岗位匹配分析",
+        "工程化：Vitest 单元/集成测试、GitHub Actions CI/CD、GitHub Pages 自动部署",
+        "i18n 国际化支持（中/英），响应式设计，localStorage 本地存储保护隐私"
+      ]
+    },
+    {
+      "name": "BrickLife（搬砖生存指南）",
+      "description": "模拟经营类小游戏，在微信小游戏和抖音小游戏平台发布。玩家从搬砖开始，逐步经营公司、招聘员工、应对随机事件。",
+      "technologies": ["Cocos Creator 3.8", "TypeScript", "微信小游戏 SDK", "抖音小游戏 SDK"],
+      "highlights": [
+        "完整游戏架构：GameManager / DataManager / EventManager / UIManager 模块化设计",
+        "跨平台适配：PlatformManager 自动检测环境，统一封装登录、分享、广告、支付、存储等平台 API",
+        "游戏系统：公司等级体系、员工职业系统、随机事件引擎、成就系统",
+        "已上线微信和抖音小游戏平台，具备从开发到上线的完整发布经验"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "category": "前端开发",
+      "items": [
+        { "name": "React", "level": 4, "yearsUsed": 5, "aliases": ["React.js", "ReactJS"], "related": ["Next.js", "React Native"] },
+        { "name": "Vue", "level": 3, "yearsUsed": 3, "aliases": ["Vue.js", "VueJS"] },
+        { "name": "TypeScript", "level": 4, "yearsUsed": 5, "aliases": ["TS"], "related": ["JavaScript"] },
+        { "name": "Next.js", "level": 3, "yearsUsed": 2, "related": ["React"] },
+        { "name": "Tailwind CSS", "level": 3, "yearsUsed": 3, "aliases": ["Tailwind"] },
+        { "name": "Vite", "level": 3, "yearsUsed": 3, "related": ["Webpack"] },
+        { "name": "Webpack", "level": 3, "yearsUsed": 4 }
+      ]
+    },
+    {
+      "category": "后端 & 云服务",
+      "items": [
+        { "name": "Node.js", "level": 4, "yearsUsed": 5, "aliases": ["Node"], "related": ["Express"] },
+        { "name": "Python", "level": 2, "yearsUsed": 3 },
+        { "name": "REST API", "level": 3, "yearsUsed": 5 },
+        { "name": "大数据", "level": 3, "yearsUsed": 4, "aliases": ["Big Data"] },
+        { "name": "云服务架构", "level": 3, "yearsUsed": 4, "aliases": ["Cloud Architecture", "Cloud Services"] }
+      ]
+    },
+    {
+      "category": "客户端 & 跨端",
+      "items": [
+        { "name": "Qt", "level": 3, "yearsUsed": 3, "aliases": ["Qt Framework"] },
+        { "name": "微信小程序", "level": 3, "yearsUsed": 2, "aliases": ["Mini Program", "WeChat Mini Program"] },
+        { "name": "鸿蒙 (HarmonyOS)", "level": 2, "yearsUsed": 1, "aliases": ["HarmonyOS", "鸿蒙"] },
+        { "name": "Cocos Creator", "level": 3, "yearsUsed": 2 }
+      ]
+    },
+    {
+      "category": "AI / 协议",
+      "items": [
+        { "name": "MCP (Model Context Protocol)", "level": 3, "yearsUsed": 1, "aliases": ["MCP Protocol", "Model Context Protocol"] },
+        { "name": "RAG", "level": 2, "yearsUsed": 1 },
+        { "name": "Prompt Engineering", "level": 2, "yearsUsed": 1 }
+      ]
+    },
+    {
+      "category": "工程化",
+      "items": [
+        { "name": "Git", "level": 4, "yearsUsed": 6, "aliases": ["GitHub"] },
+        { "name": "GitHub Actions", "level": 3, "yearsUsed": 3, "related": ["CI/CD"] },
+        { "name": "CI/CD", "level": 3, "yearsUsed": 3 },
+        { "name": "Vitest", "level": 3, "yearsUsed": 2, "related": ["Testing"] },
+        { "name": "Zod", "level": 3, "yearsUsed": 2 }
+      ]
+    }
+  ],
+  "languages": [
+    { "name": "中文", "level": "母语" },
+    { "name": "英语", "level": "CET-4" }
+  ],
+  "interests": [
+    {
+      "name": "技术",
+      "items": ["开源项目", "AI 协议设计", "独立开发", "全栈工程"]
+    },
+    {
+      "name": "产品",
+      "items": ["用户增长", "去中心化产品", "小游戏"]
+    }
+  ]
+}

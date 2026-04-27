@@ -6,6 +6,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { ResumeData } from './types.js';
 import { registerTools } from './tools/index.js';
+import { registerResources } from './resources.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -16,64 +17,6 @@ async function loadResumeData(): Promise<ResumeData> {
     join(__dirname, '..', 'data', 'sample-resume.json');
   const raw = await readFile(dataPath, 'utf-8');
   return JSON.parse(raw) as ResumeData;
-}
-
-function registerResources(server: McpServer, resume: ResumeData): void {
-  const p = resume.personal;
-
-  // resume://full — complete resume JSON
-  server.registerResource(
-    'resume-full',
-    'resume://full',
-    {
-      title: 'Full Resume',
-      description: 'Complete resume data in JSON format',
-      mimeType: 'application/json',
-    },
-    async (uri) => ({
-      contents: [
-        {
-          uri: uri.href,
-          text: JSON.stringify(resume, null, 2),
-        },
-      ],
-    })
-  );
-
-  // resume://summary — one-line summary
-  server.registerResource(
-    'resume-summary',
-    'resume://summary',
-    {
-      title: 'Resume Summary',
-      description: 'One-line candidate summary: name, title, experience years, core skills',
-      mimeType: 'text/plain',
-    },
-    async (uri) => {
-      // Calculate years of experience from earliest start date
-      const startDates = resume.experience.map((e) => new Date(e.startDate));
-      const earliest = startDates.length > 0
-        ? startDates.reduce((a, b) => (a < b ? a : b))
-        : new Date();
-      const yearsExp = new Date().getFullYear() - earliest.getFullYear();
-
-      const coreSkills = resume.skills
-        .flatMap((s) => s.items)
-        .slice(0, 6)
-        .join(', ');
-
-      const summary = `${p.name} | ${p.title} | ${yearsExp}+ years experience | Core skills: ${coreSkills}`;
-
-      return {
-        contents: [
-          {
-            uri: uri.href,
-            text: summary,
-          },
-        ],
-      };
-    }
-  );
 }
 
 async function main() {

@@ -1,71 +1,82 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Resume } from './components/Resume';
 import { ResumeEditor } from './components/ResumeEditor';
 import { Toolbar } from './components/Toolbar';
+import { AuthPage } from './components/AuthPage';
 import type { ResumeData, ThemeType } from './types/resume';
-import { DEFAULT_SECTION_ORDER } from './types/resume';
-import resumeData from './data/resume.json';
-
-const STORAGE_KEY = 'resume-data';
-
-// 数据迁移：确保新模块存在于旧数据中
-function migrateData(savedData: ResumeData): ResumeData {
-  const migrated = { ...savedData };
-
-  // 确保 sectionOrder 包含所有新模块
-  if (migrated.sectionOrder) {
-    DEFAULT_SECTION_ORDER.forEach(section => {
-      if (!migrated.sectionOrder!.includes(section)) {
-        migrated.sectionOrder!.push(section);
-      }
-    });
-  }
-
-  // 确保 sectionVisibility 包含所有新模块
-  if (migrated.sectionVisibility) {
-    DEFAULT_SECTION_ORDER.forEach(section => {
-      if (!(section in migrated.sectionVisibility!)) {
-        migrated.sectionVisibility![section] = true;
-      }
-    });
-  }
-
-  // 确保新字段存在
-  if (!migrated.certificates) {
-    migrated.certificates = [];
-  }
-  if (!migrated.interests) {
-    migrated.interests = [];
-  }
-
-  return migrated;
-}
 
 function App() {
   const { t } = useTranslation();
   const [theme, setTheme] = useState<ThemeType>('modern');
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const [livePreview, setLivePreview] = useState(false);
-  const [data, setData] = useState<ResumeData>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsedData = JSON.parse(saved);
-        return migrateData(parsedData);
-      } catch {
-        return resumeData as ResumeData;
-      }
-    }
-    return resumeData as ResumeData;
-  });
+  const [authenticated, setAuthenticated] = useState(false);
+  const [data, setData] = useState<ResumeData | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // 保存到 localStorage
+  // Check auth status on mount
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [data]);
+    fetch('/api/auth/check')
+      .then((res) => res.json())
+      .then((d) => { if (d.authenticated) setAuthenticated(true); })
+      .catch(() => {});
+  }, []);
 
-  // 导出 JSON
+  // Load resume data when authenticated
+  const loadResume = useCallback(async () => {
+    try {
+      const res = await fetch('/api/resume');
+      if (res.ok) {
+        setData(await res.json());
+      } else {
+        setAuthenticated(false);
+      }
+    } catch {
+      // Server not reachable, use empty default
+      setData({
+        personal: { name: '', title: '', email: '', summary: '' },
+        experience: [], education: [], projects: [], skills: [],
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authenticated) loadResume();
+  }, [authenticated, loadResume]);
+
+  // Save to server
+  const saveToServer = async (newData: ResumeData) => {
+    setData(newData);
+    setSaving(true);
+    try {
+      const res = await fetch('/api/resume', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newData),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        alert(`Save failed: ${err.error}`);
+      }
+    } catch {
+      alert('Save failed: Network error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Auth gate
+  if (!authenticated) {
+    return <AuthPage onAuth={() => setAuthenticated(true)} />;
+  }
+
+  // Loading
+  if (!data) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading...</div>;
+  }
+
+  // Export JSON (local file download, not server save)
   const handleExport = () => {
     const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -79,9 +90,9 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
-  // 导入 JSON
+  // Import JSON (load into editor, then save to server)
   const handleImport = (importedData: ResumeData) => {
-    setData(importedData);
+    saveToServer(importedData);
   };
 
   return (
@@ -95,13 +106,15 @@ function App() {
         onImport={handleImport}
         livePreview={livePreview}
         onLivePreviewChange={setLivePreview}
+        saving={saving}
+        onSave={() => saveToServer(data)}
       />
       <div className="pt-14 sm:pt-16 pb-20 sm:pb-8">
         {mode === 'edit' ? (
           livePreview ? (
             <div className="flex gap-4 max-w-[1600px] mx-auto px-2 sm:px-4">
               <div className="flex-1 min-w-0">
-                <ResumeEditor data={data} onChange={setData} />
+                <ResumeEditor data={data} onChange={(d) => saveToServer(d)} />
               </div>
               <div className="live-preview-panel flex-1 min-w-0 hidden lg:block">
                 <div className="sticky top-20">
@@ -110,7 +123,7 @@ function App() {
               </div>
             </div>
           ) : (
-            <ResumeEditor data={data} onChange={setData} />
+            <ResumeEditor data={data} onChange={(d) => saveToServer(d)} />
           )
         ) : (
           <div className="px-2 sm:px-4">

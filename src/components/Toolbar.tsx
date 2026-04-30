@@ -1,7 +1,8 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ThemeType, ResumeData } from '../types/resume';
 import { themes } from '../themes';
+import { InviteCodeManager } from './InviteCodeManager';
 
 interface ToolbarProps {
   theme: ThemeType;
@@ -12,6 +13,8 @@ interface ToolbarProps {
   onImport: (data: ResumeData) => void;
   livePreview: boolean;
   onLivePreviewChange: (enabled: boolean) => void;
+  saving?: boolean;
+  onSave?: () => void;
 }
 
 export function Toolbar({
@@ -22,10 +25,13 @@ export function Toolbar({
   onExport,
   onImport,
   livePreview,
-  onLivePreviewChange
+  onLivePreviewChange,
+  saving,
+  onSave
 }: ToolbarProps) {
   const { t, i18n } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showInvitePanel, setShowInvitePanel] = useState(false);
 
   const printResume = () => {
     window.print();
@@ -117,6 +123,19 @@ export function Toolbar({
           {/* 导入/导出按钮 - 仅编辑模式显示 */}
           {mode === 'edit' && (
             <div className="flex items-center gap-1 sm:gap-2">
+              {onSave && (
+                <button
+                  onClick={onSave}
+                  disabled={saving}
+                  className="p-2 sm:px-3 sm:py-1.5 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-40 transition-all flex items-center gap-1"
+                  title="Save"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="hidden sm:inline">{saving ? 'Saving...' : 'Save'}</span>
+                </button>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -143,6 +162,18 @@ export function Toolbar({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 <span className="hidden sm:inline">{t('toolbar.export')}</span>
+              </button>
+              <button
+                onClick={() => setShowInvitePanel(!showInvitePanel)}
+                className={`p-2 sm:px-3 sm:py-1.5 rounded text-sm transition-all flex items-center gap-1 ${
+                  showInvitePanel ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                title="Invite Codes"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                <span className="hidden sm:inline">Codes</span>
               </button>
             </div>
           )}
@@ -183,6 +214,13 @@ export function Toolbar({
           )}
         </div>
       </div>
+
+      {/* Invite Code Panel */}
+      {showInvitePanel && mode === 'edit' && (
+        <div className="border-t border-gray-200 bg-gray-50 max-w-7xl mx-auto">
+          <InviteCodeManager />
+        </div>
+      )}
     </div>
   );
 }

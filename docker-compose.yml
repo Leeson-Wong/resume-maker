@@ -1,0 +1,11 @@
+services:
+  resume-maker:
+    build: .
+    ports:
+      - "965:965"
+    volumes:
+      - ./data:/app/data
+      - ./config.json:/app/config.json:ro
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

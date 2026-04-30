@@ -15,6 +15,15 @@ dist
 dist-ssr
 *.local
 
+# Runtime data (not tracked in git)
+data/
+
+# Windows artifacts
+NUL
+
+# Config (contains auth secrets)
+config.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

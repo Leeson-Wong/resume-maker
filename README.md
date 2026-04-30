@@ -1,270 +1,199 @@
 # Resume Maker
 
-> 一个简洁、现代的在线简历生成器，配备 AI MCP Server 让 AI Agent 也能查询你的简历。
+> 一个面向开发者的个人简历服务器。编辑简历、生成公开页、通过 MCP 协议让 AI Agent 深度查询你的简历数据。
 
-[![GitHub](https://img.shields.io/badge/GitHub-Leeson--Wong%2Fresume--maker-blue?logo=github)](https://github.com/Leeson-Wong/resume-maker)
-[![Live Demo](https://img.shields.io/badge/Live-Demo-green?logo=github-pages)](https://leeson-wong.github.io/resume-maker/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+## 这是什么
 
-## 简介
+Resume Maker 是一个自部署的开源工具，服务于一个核心理念：
 
-Resume Maker 包含两个核心产品：
+**投递简历时给出「页面链接 + 邀请码」→ 只有 AI 素养足够的人才能通过 Agent 查询你的深度信息。**
 
-1. **前端简历编辑器** — 基于 React 的开源简历生成工具，帮助你轻松创建专业的个人简历。无需注册登录，数据存储在本地浏览器中，保护你的隐私。
-
-2. **AI MCP Server** — 基于 Model Context Protocol 的 AI 可查询简历服务。启动 MCP Server 后，任何兼容 MCP 的 AI Agent（如 Claude、Cursor）都可以通过标准协议查询简历数据，实现 AI 辅助求职匹配。
-
-## 功能特性
-
-### 前端编辑器
-
-- **编辑/预览模式** — 实时切换编辑和预览视图
-- **多种主题** — Classic（经典）、Modern（现代）、Minimal（极简）三种风格
-- **本地存储** — 数据自动保存到浏览器，无需担心丢失
-- **PDF 导出** — 一键打印或导出为 PDF 文件
-- **JSON 导入/导出** — 备份和迁移简历数据
-- **个人头像** — 支持上传可选的个人头像
-- **拖拽排序** — 经历、项目等条目可拖拽调整顺序
-- **模块开关** — 控制各部分（语言能力、技能等）是否显示
-- **i18n 国际化** — 支持中英文切换
-- **响应式设计** — 适配不同屏幕尺寸
-
-### AI MCP Server
-
-- **7 个查询工具** — 涵盖个人资料、工作经历、项目、技能、教育、全文搜索、岗位匹配分析
-- **2 个资源端点** — `resume://full` 完整简历 JSON，`resume://summary` 一行摘要
-- **全文搜索** — TF 评分的跨模块关键词搜索，支持中文
-- **岗位匹配** — 自动分析候选人与 JD 的匹配度，给出分数和建议
-- **标准 MCP 协议** — 兼容任何支持 MCP 的 AI 客户端
-- **HTTP Streamable Transport** — 通过 POST `/mcp` 端点接入
-
-## 技术栈
-
-| 层级 | 前端 | AI MCP Server |
-|------|------|---------------|
-| 框架 | React 19 | Node.js |
-| 语言 | TypeScript | TypeScript |
-| 构建 | Vite 7 | tsc |
-| 样式 | Tailwind CSS 4 | — |
-| 协议 | — | MCP (Model Context Protocol) |
-| 拖拽 | @dnd-kit | — |
-| PDF | jsPDF + html2canvas | — |
-| i18n | i18next | — |
-| 校验 | — | Zod |
-| 测试 | — | Vitest |
-
-## 架构概览
+### 三个入口，一个服务
 
 ```
-┌──────────────────────────────────────────────┐
-│                  用户浏览器                    │
-│  ┌──────────┐    ┌──────────┐    ┌─────────┐ │
-│  │ 编辑器    │◄──►│ React App│◄──►│ 主题引擎 │ │
-│  │ ResumeEditor│   │ App.tsx  │    │ themes/ │ │
-│  └──────────┘    └────┬─────┘    └─────────┘ │
-│                       │ localStorage          │
-└───────────────────────┼──────────────────────┘
-                        │ JSON
-┌───────────────────────┼──────────────────────┐
-│                 AI MCP Server (ai/)           │
-│  ┌────────────────────┴────────────────────┐  │
-│  │         sample-resume.json              │  │
-│  └────────────┬───────────────────────────┘  │
-│               │                               │
-│  ┌────────────▼────────────┐                  │
-│  │     McpServer           │                  │
-│  │  ┌──────────┐ ┌───────┐ │                  │
-│  │  │ 7 Tools  │ │ 2 Res │ │  POST /mcp      │
-│  │  └──────────┘ └───────┘ │◄──────── AI Agent│
-│  │  ┌──────────────────┐   │                  │
-│  │  │ RAG Search Engine│   │                  │
-│  │  └──────────────────┘   │                  │
-│  └─────────────────────────┘                  │
-└──────────────────────────────────────────────┘
+/            → 公开页（任何人可见，包含 MCP 发现元信息）
+/mcp         → MCP endpoint（需要邀请码认证，给 AI Agent 用）
+/edit        → 简历编辑器（需要认证码，给自己用）
 ```
 
 ## 快速开始
 
-### 前端
+### 本地开发
 
 ```bash
-# 克隆仓库
 git clone https://github.com/Leeson-Wong/resume-maker.git
 cd resume-maker
-
-# 安装依赖
 npm install
 
-# 启动开发服务器
-npm run dev
+# 创建配置文件
+cp config.example.json config.json
+# 编辑 config.json，设置 authCode
 
-# 构建生产版本
-npm run build
+# 启动前后端
+npm run dev
 ```
 
-### AI MCP Server
+访问 `http://localhost:1053` 进行开发（Vite 代理 API 到后端）。
+
+### Docker 部署
 
 ```bash
-cd ai
+# 创建配置和数据目录
+cp config.example.json config.json
+mkdir -p data
 
-# 安装依赖
-npm install
+# 一键启动
+docker compose up -d
+```
 
-# 启动开发服务器
-npm run dev
+访问 `http://localhost:965`。
 
-# 或构建后运行
+### 手动部署
+
+```bash
+# 构建
 npm run build
+
+# 配置
+cp config.example.json config.json
+# 编辑 config.json
+
+# 启动
 npm start
 ```
 
-Server 启动后：
-- 健康检查: `GET http://localhost:3001/`
-- MCP 端点: `POST http://localhost:3001/mcp`
+## 配置
 
-自定义简历数据：
-```bash
-RESUME_DATA_PATH=/path/to/your-resume.json npm start
+创建 `config.json`（已在 .gitignore 中）：
+
+```json
+{
+  "authCode": "your-secret-auth-code",
+  "port": 965,
+  "dataPath": "./data"
+}
 ```
 
-### 运行测试
+| 字段 | 说明 | 环境变量 |
+|------|------|----------|
+| `authCode` | 编辑器认证码（必填） | `AUTH_CODE` |
+| `port` | 服务端口，默认 965 | `PORT` |
+| `dataPath` | 数据目录，默认 `./data` | `DATA_PATH` |
+
+## 数据文件
+
+```
+data/
+├── resume.json      # 简历数据
+├── codes.json       # 邀请码列表（自动生成）
+└── public/          # 自定义公开页（可选）
+    └── index.html   # 放入自己的 HTML 即可替换默认页面
+```
+
+首次启动时，如果 `resume.json` 不存在，会自动创建空模板。
+
+## 公开页
+
+`/` 路由服务公开页面。默认渲染一份简洁的简历 HTML。你可以自定义：
+
+1. 在 `data/public/` 目录放入 `index.html` 即可替换
+2. 页面会自动注入 MCP 发现元信息（`<link rel="mcp">` + JSON-LD）
+3. 通过 `data/public/` 目录放入 CSS/JS/图片等静态资源，访问路径 `/public/filename`
+
+## 邀请码系统
+
+编辑器内点击 **Codes** 按钮管理邀请码：
+
+- **生成** — 输入标注（如"字节跳动-HR张三"），生成 6 位安全码
+- **吊销** — 随时吊销某个邀请码，立即失效
+- **追踪** — 查看每个邀请码的访问日志
+
+分享给招聘方：
+
+```
+简历链接：https://your-domain.com
+MCP 配置（给 AI Agent 用）：
+{
+  "mcpServers": {
+    "candidate-resume": {
+      "url": "https://your-domain.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <邀请码>"
+      }
+    }
+  }
+}
+```
+
+## MCP 工具列表
+
+| 工具 | 说明 |
+|------|------|
+| `get_profile` | 公开信息（姓名、title、简介，不含邮箱手机） |
+| `get_experience` | 工作经历，支持关键词过滤 |
+| `get_projects` | 项目经历，支持技术栈过滤 |
+| `get_skills` | 技能列表，支持分类过滤 |
+| `get_education` | 教育背景 |
+| `search_resume` | 全文搜索 |
+| `evaluate_fit` | 职位匹配分析（给出匹配分数和建议） |
+| `get_career_summary` | 职业概览 |
+
+## stdio 模式（本地开发）
 
 ```bash
-cd ai
-
-# 运行所有测试
-npm test
-
-# 监听模式
-npm run test:watch
-
-# MCP 验证脚本（独立运行）
-npx tsx scripts/validate-mcp.mts
+npm run start:stdio
 ```
+
+在 Claude Desktop 的 `claude_desktop_config.json` 中配置：
+
+```json
+{
+  "mcpServers": {
+    "resume": {
+      "command": "npx",
+      "args": ["tsx", "server/stdio.ts"],
+      "cwd": "/path/to/resume-maker"
+    }
+  }
+}
+```
+
+## 技术栈
+
+- **后端**: Node.js, TypeScript, MCP SDK, Zod
+- **前端**: React 19, Vite 7, Tailwind CSS 4
+- **部署**: Docker, docker-compose
 
 ## 项目结构
 
 ```
 resume-maker/
-├── src/                          # 前端源码
-│   ├── components/
-│   │   ├── Resume.tsx            # 简历渲染组件
-│   │   ├── ResumeEditor.tsx      # 简历编辑器
-│   │   └── Toolbar.tsx           # 顶部工具栏
-│   ├── data/
-│   │   └── resume.json           # 默认示例数据
-│   ├── i18n/
-│   │   ├── index.ts              # i18n 配置
-│   │   └── locales/              # 语言文件
-│   │       ├── en.json
-│   │       └── zh.json
-│   ├── themes/
-│   │   └── index.ts              # 主题配置 (classic/modern/minimal)
-│   ├── types/
-│   │   └── resume.ts             # TypeScript 类型定义
-│   ├── App.tsx                   # 主应用组件
-│   ├── main.tsx                  # 入口文件
-│   └── index.css                 # 全局样式
-├── ai/                           # AI MCP Server
-│   ├── src/
-│   │   ├── server.ts             # HTTP 服务器入口
-│   │   ├── resources.ts          # MCP 资源注册 (resume://full, resume://summary)
-│   │   ├── types.ts              # 共享类型定义
-│   │   ├── tools/
-│   │   │   └── index.ts          # 7 个 MCP 工具注册
-│   │   └── rag/
-│   │       └── search.ts         # 搜索引擎 + 岗位匹配
-│   ├── data/
-│   │   └── sample-resume.json    # 示例简历数据
-│   ├── scripts/
-│   │   └── validate-mcp.mts      # 独立验证脚本
-│   ├── tests/
-│   │   ├── fixtures/
-│   │   │   └── minimal-resume.json
-│   │   ├── helpers/
-│   │   │   ├── create-test-server.ts
-│   │   │   └── load-resume.ts
-│   │   ├── unit/
-│   │   │   ├── rag/
-│   │   │   │   └── search.test.ts
-│   │   │   └── tools/
-│   │   │       └── handlers.test.ts
-│   │   └── integration/
-│   │       ├── resources.test.ts
-│   │       └── mcp-validation.test.ts
-│   ├── vitest.config.ts
-│   ├── tsconfig.json
-│   └── package.json
-├── public/                       # 静态资源
-├── index.html                    # HTML 模板
-├── LICENSE                       # MIT 许可证
-└── README.md
+├── server/               # 后端服务
+│   ├── index.ts          # HTTP 服务入口
+│   ├── stdio.ts          # stdio 模式入口
+│   ├── config.ts         # 配置加载
+│   ├── auth.ts           # Session 认证
+│   ├── storage.ts        # 原子文件存储
+│   ├── schema.ts         # Zod 验证
+│   ├── invite-codes.ts   # 邀请码管理
+│   └── public-page.ts    # 公开页服务 + MCP 发现注入
+├── mcp/                  # MCP 核心逻辑
+│   ├── create-server.ts  # MCP Server 工厂
+│   ├── tools/index.ts    # 8 个 Tool
+│   ├── resources.ts      # 2 个 Resource
+│   └── rag/              # 搜索和匹配引擎
+├── src/                  # 前端（React）
+│   ├── components/       # 编辑器、认证页、邀请码管理
+│   ├── types/resume.ts   # 统一类型定义
+│   ├── i18n/             # 中英双语
+│   └── themes/           # 3 套简历主题
+├── data/                 # 运行时数据（git ignore）
+├── docs/                 # 产品文档 + 开发任务
+├── Dockerfile
+├── docker-compose.yml
+└── config.example.json
 ```
-
-## MCP 工具与资源
-
-### 工具 (Tools)
-
-| 工具名 | 描述 | 参数 |
-|--------|------|------|
-| `get_profile` | 获取候选人基本信息（姓名、职位、联系方式、简介） | 无 |
-| `get_experience` | 获取工作经历，支持关键词过滤 | `keyword?` (string) |
-| `get_projects` | 获取项目经历，支持技术/关键词过滤 | `keyword?` (string) |
-| `get_skills` | 获取技能列表，支持分类过滤 | `category?` (string) |
-| `get_education` | 获取教育背景 | 无 |
-| `search_resume` | 全文搜索简历，返回匹配片段和相关性评分 | `query` (string) |
-| `evaluate_fit` | 分析候选人与岗位描述的匹配度，给出分数和建议 | `job_description` (string) |
-
-### 资源 (Resources)
-
-| URI | 类型 | 描述 |
-|-----|------|------|
-| `resume://full` | `application/json` | 完整简历 JSON 数据 |
-| `resume://summary` | `text/plain` | 一行摘要：姓名、职位、经验年限、核心技能 |
-
-## 开发计划
-
-### 功能增强
-
-- [x] 导入/导出 JSON — 方便备份和迁移简历数据
-- [x] 拖拽排序 — 经历、项目等条目可拖拽调整顺序
-- [x] 模块开关 — 控制各部分（语言能力、技能等）是否显示
-- [ ] 多简历管理 — 支持创建多份不同简历
-
-### 用户体验
-
-- [x] 实时预览 — 左右分栏，编辑时同步预览
-- [ ] 撤销/重做 — 操作历史记录
-- [ ] 表单验证 — 必填项空值提示
-- [ ] 快捷键支持 — Ctrl+S 保存等
-
-### 技术改进
-
-- [ ] PWA 支持 — 可离线使用
-- [x] i18n 国际化 — 支持中英文切换
-- [x] 响应式优化 — 移动端更好体验
-- [x] AI MCP Server — 让 AI Agent 可以查询简历数据
-
-### 新增模块
-
-- [x] 证书/荣誉 — 独立的证书展示区
-- [x] 兴趣爱好 — 个人兴趣展示
-- [ ] 自定义模块 — 用户可添加自定义 section
-
-## 贡献指南
-
-欢迎贡献代码、报告问题或提出新功能建议！
-
-1. Fork 本仓库
-2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
-
-## 作者
-
-**王乐生 (Leeson-Wong)** — [GitHub](https://github.com/Leeson-Wong)
 
 ## 许可证
 
-[MIT](LICENSE) © 2026 Resume Maker Contributors
+[MIT](LICENSE)

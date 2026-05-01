@@ -34,3 +34,4 @@ config.json
 *.njsproj
 *.sln
 *.sw?
+docs/
